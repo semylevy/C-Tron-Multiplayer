@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "vector2.h": "c",
+    "tron_simulation.h": "c"
+  }
+}
