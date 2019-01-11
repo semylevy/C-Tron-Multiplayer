@@ -1,5 +1,5 @@
 # C-TRON Multiplayer
-A C developed, multiplayer adaptation of the oroginal "Tron" arcade game.
+A C developed, multiplayer adaptation of the original "Tron" arcade game.
 
 ## Compilation Instructions
     make
