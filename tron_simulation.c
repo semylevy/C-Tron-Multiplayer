@@ -113,19 +113,15 @@ Enumeration for the position
 
 void getNewCoordinates(player_status_t *player){
   if(player->current_direction == UP){
-    printf("my coord was %d\n",player->coordinates.y_position);
     player->coordinates.y_position = getCoord(player->coordinates.y_position - 1, BOARD_HEIGHT);
   }
   else if(player->current_direction == LEFT){
-    printf("my coord was %d\n",player->coordinates.x_position);
     player->coordinates.x_position = getCoord(player->coordinates.x_position - 1, BOARD_WIDTH);
   }
   else if(player->current_direction == DOWN){
-    printf("my coord was %d\n",player->coordinates.y_position);
     player->coordinates.y_position = getCoord(player->coordinates.y_position + 1, BOARD_HEIGHT);
   }
   else if(player->current_direction == RIGHT){
-    printf("my coord was %d\n",player->coordinates.x_position);
     player->coordinates.x_position = getCoord(player->coordinates.x_position + 1, BOARD_WIDTH);
   }
   else{

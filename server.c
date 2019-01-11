@@ -26,6 +26,10 @@
 
 #define BUFFER_SIZE 1024
 #define MAX_QUEUE 5
+#define SLEEP 10000
+
+// use for printing debug info
+// #define DEBUG
 
 ///// Structure definitions
 
@@ -178,7 +182,7 @@ void waitForConnections(int server_fd, game_t * game_data, locks_t * data_locks)
   while (!interrupted) {
     printf("%d / %d players!\n", current_player_c, game_data->players->player_count);
     if (current_player_c >= game_data->players->player_count) {
-      printf("Changing status to 1\n");
+      printf("All players have connected, starting game...\n");
       game_data->status = 1;
       break;
     }
@@ -276,7 +280,7 @@ void * attentionThread(void * arg) {
 
   // Wait for every player to connect
   while (!connection_data->game_data->status && !interrupted) {
-    usleep(10000);
+    usleep(SLEEP);
     printf("Player %d is waiting for all players to connect.\n", connection_data->player_number);
   }
 
@@ -289,9 +293,7 @@ void * attentionThread(void * arg) {
     test_fds[0].fd = connection_data->connection_fd;
     test_fds[0].events = POLLIN;    // Check for incomming data
     // Check if there is any incomming communication
-    printf("RIGHT before poll\n");
     poll_response = poll(test_fds, 1, timeout);
-    printf("RIGHT after poll\n");
     // Error when polling
     if (poll_response == -1) {
       // Test if the error was caused by an interruption
@@ -315,18 +317,21 @@ void * attentionThread(void * arg) {
         sscanf(buffer, "%d", &direction);
         connection_data->game_data->
           stati[connection_data->player_number - 1].current_direction = direction;
-        printf("Received %d from player %d\n", direction, connection_data->player_number);
+        #ifdef DEBUG
+          printf("Received %d from player %d\n", direction, connection_data->player_number);
+        #endif
         pthread_mutex_lock(&connection_data->data_locks->count_mutex);
           connection_data->game_data->players->players_ready++;
         pthread_mutex_unlock(&connection_data->data_locks->count_mutex);
-        printf("After mutex on player %d\n", connection_data->player_number);
         // The server sets count to 0 once all players are ready
         while (connection_data->game_data->players->players_ready != 0
                && !interrupted) {
           // Check if there is any incomming communication
           poll_response = poll(test_fds, 1, timeout);
           if (poll_response == 0) {
-            printf("%d", connection_data->player_number);
+            #ifdef DEBUG
+              printf("%d", connection_data->player_number);
+            #endif
             fflush(stdout);
           } else {
             printf("BREAK\n");
@@ -335,11 +340,12 @@ void * attentionThread(void * arg) {
           }
         }
         compressed = compressGame(connection_data->game_data);
-        printf("Sending message %s to %d\n",compressed, connection_data->player_number);
+        #ifdef DEBUG
+          printf("Sending message %s to %d\n",compressed, connection_data->player_number);
+        #endif
         sendString(connection_data->connection_fd, compressed);
         ///printf("After send: %s\n", compressed);
         free(compressed);
-        printf("Was able to FREE\n");
       }
     }
   }
@@ -355,7 +361,9 @@ void manageGame(game_t * game_data, locks_t * data_locks) {
     usleep(1000);
     if (game_data->players->players_ready >= game_data->players->connected_players) {
       game_simulation(game_data->board, game_data->stati, game_data->players->player_count);
-      print_board(game_data->board);
+      #ifdef DEBUG
+        print_board(game_data->board);
+      #endif
       pthread_mutex_lock(&data_locks->count_mutex);
         game_data->players->players_ready = 0;
       pthread_mutex_unlock(&data_locks->count_mutex);
@@ -371,7 +379,9 @@ void manageGame(game_t * game_data, locks_t * data_locks) {
     Free all the memory used for the bank data
 */
 void closeGame(game_t * player_data, locks_t * data_locks) {
-    printf("DEBUG: Clearing the memory for the thread\n");
+    #ifdef DEBUG
+      printf("DEBUG: Clearing the memory for the thread\n");
+    #endif
     free_board(player_data->board);
     free(player_data->stati);
     free(player_data->players);

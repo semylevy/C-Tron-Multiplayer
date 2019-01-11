@@ -154,8 +154,6 @@ void update(int connection_fd, game_t * game, direction_t move, int time) {
   // Prepare the message to the server
   sprintf(buffer, "%d", move);
 
-  //usleep(time);
-
   // SEND
   // Send the request
   sendString(connection_fd, buffer);
