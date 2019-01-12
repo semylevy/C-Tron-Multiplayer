@@ -16,6 +16,9 @@
 # Ignore Mac OS things
 .DS_Store
 
+# Ignore VSCode files
+.vscode
+
 # Ignore debbuging files
 *.dSYM
 
