@@ -19,14 +19,14 @@
 ///// FUNCTION DECLARATIONS
 void usage(char * program);
 void startGame(int connection_fd, game_t * game);
-void update(int connection_fd, game_t * game, direction_t move, int time);
+void update(int connection_fd, game_t * game, direction_t move);
 // Thread to catch keyboard strokes
 void * threadEntry (void * arg);
 
 ///// MAIN FUNCTION
 int main(int argc, char * argv[]) {
   // Check the correct arguments
-  if (argc != 4) {
+  if (argc != 3) {
       usage(argv[0]);
   }
 
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
     refresh();
 
     if (counter % 5 == 0) {
-      update(connection_fd, game, direction, atoi(argv[3]));
+      update(connection_fd, game, direction);
     }
   }
   // Close the socket
@@ -115,7 +115,7 @@ int main(int argc, char * argv[]) {
 */
 void usage(char * program) {
   printf("Usage:\n");
-  printf("\t%s {server_address} {port_number} {delay (ms)}\n", program);
+  printf("\t%s {server_address} {port_number}\n", program);
   exit(EXIT_FAILURE);
 }
 
@@ -132,8 +132,8 @@ void startGame(int connection_fd, game_t * game) {
   // Send the request
   sendString(connection_fd, buffer);
   if ( !recvString(connection_fd, buffer, BUFFER_SIZE) ) {
-      printf("Server closed the connection\n");
-      return;
+    printf("Server closed the connection\n");
+    return;
   }
   game->board = malloc(sizeof(board_t));
   sscanf(buffer, "%d,%d,%d",
@@ -148,9 +148,8 @@ void startGame(int connection_fd, game_t * game) {
   }
 }
 
-void update(int connection_fd, game_t * game, direction_t move, int time) {
+void update(int connection_fd, game_t * game, direction_t move) {
   char buffer[BUFFER_SIZE];
-  usleep(time);
   // Prepare the message to the server
   sprintf(buffer, "%d", move);
 

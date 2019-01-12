@@ -58,7 +58,7 @@ int interrupted = 0;
 ///// FUNCTION DECLARATIONS
 void usage(char * program);
 void setupHandlers();
-void initGame(game_t * game_data, int player_c, locks_t * data_locks);
+void initGame(game_t * game_data, int player_c, locks_t * data_locks, int speed);
 void waitForConnections(int server_fd, game_t * game_data, locks_t * data_locks);
 void * attentionThread(void * arg);
 int checkValidAccount(int account);
@@ -75,7 +75,7 @@ int main(int argc, char * argv[]) {
   printf("\n=== TRON SERVER ===\n");
 
   // Check the correct arguments
-  if (argc != 3) {
+  if (argc != 4) {
     usage(argv[0]);
   }
 
@@ -83,7 +83,7 @@ int main(int argc, char * argv[]) {
   setupHandlers();
 
   // Initialize the data structures
-  initGame(&game_data, atoi(argv[2]), &data_locks);
+  initGame(&game_data, atoi(argv[2]), &data_locks, atoi(argv[3]));
 
 	// Show the IPs assigned to this computer
 	printLocalIPs();
@@ -112,7 +112,7 @@ int main(int argc, char * argv[]) {
 */
 void usage(char * program) {
   printf("Usage:\n");
-  printf("\t%s {port_number} {player_number}\n", program);
+  printf("\t%s {port_number} {player_number} {game_speed (ms, try anywhere from 10,000-100,000)}\n", program);
   exit(EXIT_FAILURE);
 }
 
@@ -142,7 +142,7 @@ void detectInterruption(int signal) {
     Function to initialize all the information necessary
     This will allocate memory for the accounts, and for the mutexes
 */
-void initGame(game_t * game_data, int player_c, locks_t * data_locks) {
+void initGame(game_t * game_data, int player_c, locks_t * data_locks, int speed) {
   printf("INIT GAME\n");
   // Game hasn's started
   game_data->status = 0;
@@ -158,6 +158,8 @@ void initGame(game_t * game_data, int player_c, locks_t * data_locks) {
   game_data->players->players_ready = 0;
   // Set the number of players
   game_data->players->player_count = player_c;
+  // Set game speed
+  game_data->speed = speed;
   // Initialize the mutex
   pthread_mutex_init(&data_locks->count_mutex, NULL);
 }
@@ -266,6 +268,8 @@ void * attentionThread(void * arg) {
   operation_t op;
   int disconnected = 0;
   char * compressed = NULL;
+  int sleep_time = connection_data->game_data->speed >= 10000 
+    ? connection_data->game_data->speed : 10000;
 
   recvString(connection_data->connection_fd, buffer, BUFFER_SIZE);
   sscanf(buffer, "%d", &op);
@@ -346,6 +350,7 @@ void * attentionThread(void * arg) {
         sendString(connection_data->connection_fd, compressed);
         ///printf("After send: %s\n", compressed);
         free(compressed);
+        usleep(sleep_time);
       }
     }
   }

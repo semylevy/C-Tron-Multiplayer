@@ -81,6 +81,8 @@ typedef struct game_struct {
   player_t * players;
   // Players status
   player_status_t * stati;
+  // Speed of game (wait time between frames in ms)
+  int speed;
 } game_t;
 
 board_t *create_board(int size_x, int size_y);
