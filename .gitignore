@@ -17,7 +17,7 @@
 .DS_Store
 
 # Ignore VSCode files
-.vscode
+/.vscode/*
 
 # Ignore debbuging files
 *.dSYM
