@@ -182,7 +182,9 @@ void waitForConnections(int server_fd, game_t * game_data, locks_t * data_locks)
   client_address_size = sizeof client_address;
 
   while (!interrupted) {
-    printf("%d / %d players!\n", current_player_c, game_data->players->player_count);
+    #ifdef DEBUG
+      printf("%d / %d players!\n", current_player_c, game_data->players->player_count);
+    #endif
     if (current_player_c >= game_data->players->player_count) {
       printf("All players have connected, starting game...\n");
       game_data->status = 1;
